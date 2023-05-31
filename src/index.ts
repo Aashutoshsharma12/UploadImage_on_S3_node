@@ -1,7 +1,7 @@
 import express,{Router} from 'express'
-import uploadImages from './controllers/uploadImages';
+import uploadImages from './uploadImages';
 import fileUpload from 'express-fileupload';
-import router from './routes/router';
+import router from './router';
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

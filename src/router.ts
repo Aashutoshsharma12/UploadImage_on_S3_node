@@ -1,5 +1,5 @@
 import Router from 'express'
-import images from '../controllers/uploadImages'
+import images from './uploadImages'
 const router =  Router();
 
 router.post('/uploadImage',images.UploadImage);
