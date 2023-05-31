@@ -20,7 +20,7 @@
   "homepage": "https://github.com/Aashusharm/UploadImage_on_s3_nodejs#readme",
   "dependencies": {
     "@types/typescript": "^2.0.0",
-    "aws-sdk": "^2.1386.0",
+    "aws-sdk": "^2.1387.0",
     "dist": "^0.1.2",
     "express": "^4.18.2",
     "express-fileupload": "^1.4.0",
