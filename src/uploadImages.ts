@@ -102,7 +102,7 @@ const pre_signed_url_Cdn = (req: any, res: any) => {
         const imageUrl = req.body.imageUrl
         const lastSlashIndex = imageUrl.lastIndexOf('/');
         const filename = imageUrl.substring(lastSlashIndex + 1);
-        const cloudFrontUrl = 'https://d3t9wqgqhzms2h.cloudfront.net';
+        const cloudFrontUrl = process.env.CLOUDFRONT_URL;
 
         const params = {
             Bucket: BucketName,
