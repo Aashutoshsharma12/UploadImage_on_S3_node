@@ -1,3 +1,4 @@
+require('dotenv').config();
 import express,{Router} from 'express'
 import uploadImages from './uploadImages';
 import fileUpload from 'express-fileupload';

@@ -1,25 +1,32 @@
 const AWS = require('aws-sdk');
 
 // configure it with your AWS credentials:
-AWS.config.update({
-    accessKeyId: 'YOUR_ACCESS_KEY',
-    secretAccessKey: 'YOUR_SECRET_ACCESS_KEY',
-    region: 'YOUR_REGION' // e.g., 'us-east-1'
+const BucketName = "graph-imageupload"
+const region = process.env.REGION
+console.log(region)
+// configure it with your AWS credentials:
+AWS.config.update({ region: process.env.REGION});
+var s3 = new AWS.S3({
+    credentials: {
+        accessKeyId: process.env.ACCESS_KEYID,
+        secretAccessKey: process.env.SECRETACESS_ID
+    }
 });
+const cloudfront = new AWS.CloudFront();
 
 
 // Create an instance of the S3 service:
-const s3 = new AWS.S3();
+// const s3 = new AWS.S3();
 
 
 //Upload Image 
 const UploadImage = (req: any, res: any) => {
     try {
         const uploadParams = {
-            Bucket: 'YOUR_BUCKET_NAME', //Bucket Name
+            Bucket: BucketName, //Bucket Name
             Key: req.files.files.name, //Image Name
             Body: Buffer.from(req.files.files.data), // Image buffer or stream
-            ACL: 'private' // Set ACL to public-read and private for public access 
+            ACL: req.body.ACL // Set ACL to public-read and private for public access 
         }
 
         s3.upload(uploadParams, (err: any, data: any) => {
@@ -38,7 +45,7 @@ const UploadImage = (req: any, res: any) => {
 const DeleteImage = (req: any, res: any) => {
     try {
         const deleteParams = {
-            Bucket: 'YOUR_BUCKET_NAME', //Bucket Name
+            Bucket: BucketName, //Bucket Name
             Key: "PATH_TO_IMAGE_OBJECT", //Image Name 
         }
         s3.deleteObject(deleteParams, function (err: any, data: any) {
@@ -56,14 +63,12 @@ const DeleteImage = (req: any, res: any) => {
 //image list ***************************************//
 const Image_List = (req: any, res: any) => {
     const listParams = {
-        Bucket: 'YOUR_BUCKET_NAME'
+        Bucket: BucketName
     };
     s3.listObjectsV2(listParams, function (err: any, data: any) {
         if (err) {
-            console.error('Error listing objects in S3:', err);
             return res.json({ message: err })
         } else {
-            console.log('Images in S3:', data);
             return res.json({ data: data })
 
         }
@@ -71,24 +76,56 @@ const Image_List = (req: any, res: any) => {
 }
 
 //Private image url convert into public url for some time//
-const pre_signed_url = (req:any,res:any) =>{
+const pre_signed_url = (req: any, res: any) => {
+    console.log(region)
+
     try {
+        const imageUrl = req.body.imageUrl
+        const lastSlashIndex = imageUrl.lastIndexOf('/');
+        const filename = imageUrl.substring(lastSlashIndex + 1);
+
         const getURLParams = {
-            Bucket: 'YOUR_BUCKET_NAME', //Bucket Name
-            Key: "PATH_TO_IMAGE_OBJECT", //Image Name
-            Expires: 30 // Expiration time in seconds (e.g., 1 hour)
+            Bucket: BucketName, //Bucket Name
+            Key: 'Screenshot from 2022-01-18 11-55-58.png', //Image Name
+            Expires: req.body.expiredTime // Expiration time in seconds (e.g., 1 hour)
         };
         const imageURL = s3.getSignedUrl('getObject', getURLParams);
         return res.json({ data: imageURL })
-    } catch (err:any) {
-        res.json({message:err})
+    } catch (err: any) {
+        res.json({ message: err })
     }
 }
+
+//Private image url convert into public url for some time//
+const pre_signed_url_Cdn = (req: any, res: any) => {
+    try {
+        const imageUrl = req.body.imageUrl
+        const lastSlashIndex = imageUrl.lastIndexOf('/');
+        const filename = imageUrl.substring(lastSlashIndex + 1);
+        const cloudFrontUrl = 'https://d3t9wqgqhzms2h.cloudfront.net';
+
+        const params = {
+            Bucket: BucketName,
+            Key: filename,
+            // expires: Math.floor((Date.now() + 3600000) / 1000) // URL expiration time in seconds (1 hour in this example)
+            Expires: 30
+        };
+        const pre_signedUrl = s3.getSignedUrl('getObject', params);
+        const finalUrl = `${cloudFrontUrl}/${filename}?${pre_signedUrl.split('?')[1]}`;
+        // const modifiedUrl = pre_signedUrl.replace('s3.ap-south-1.amazonaws.com', cloudFrontUrl);
+
+        return res.json({ CDN_Url: finalUrl })
+    } catch (err: any) {
+        res.json({ message: err })
+    }
+}
+
 
 
 export default {
     UploadImage,
     DeleteImage,
     Image_List,
-    pre_signed_url
+    pre_signed_url,
+    pre_signed_url_Cdn
 } as const
