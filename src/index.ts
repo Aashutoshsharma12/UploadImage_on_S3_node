@@ -3,8 +3,10 @@ import express,{Router} from 'express'
 import uploadImages from './uploadImages';
 import fileUpload from 'express-fileupload';
 import router from './router';
+import cors from 'cors'
 const app = express();
 app.use(express.json());
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload({
     limits: {

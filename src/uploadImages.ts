@@ -5,7 +5,7 @@ const BucketName = "graph-imageupload"
 const region = process.env.REGION
 console.log(region)
 // configure it with your AWS credentials:
-AWS.config.update({ region: process.env.REGION});
+AWS.config.update({ region: process.env.REGION });
 var s3 = new AWS.S3({
     credentials: {
         accessKeyId: process.env.ACCESS_KEYID,
@@ -26,14 +26,13 @@ const UploadImage = (req: any, res: any) => {
             Bucket: BucketName, //Bucket Name
             Key: req.files.files.name, //Image Name
             Body: Buffer.from(req.files.files.data), // Image buffer or stream
-            ACL: req.body.ACL // Set ACL to public-read and private for public access 
+            ACL: req.body.ACL ? req.body.ACL :"private"// Set ACL to public-read and private for public access 
         }
-
         s3.upload(uploadParams, (err: any, data: any) => {
             if (err) {
                 res.json({ message: err })
             } else {
-                res.json({ imageUrl: data.Location })
+                res.json({ imageUrl: data })
             }
         })
     } catch (err: any) {
@@ -77,16 +76,16 @@ const Image_List = (req: any, res: any) => {
 
 //Private image url convert into public url for some time//
 const pre_signed_url = (req: any, res: any) => {
-    console.log(region)
 
     try {
-        const imageUrl = req.body.imageUrl
-        const lastSlashIndex = imageUrl.lastIndexOf('/');
-        const filename = imageUrl.substring(lastSlashIndex + 1);
+    //     const imageUrl = req.body.imageUrl
+    //     const lastSlashIndex = imageUrl.lastIndexOf('/');
+    //     const filename = imageUrl.substring(lastSlashIndex + 1);
+        console.log(region,"slsl")
 
         const getURLParams = {
             Bucket: BucketName, //Bucket Name
-            Key: 'Screenshot from 2022-01-18 11-55-58.png', //Image Name
+            Key: req.body.Key, //Image Name
             Expires: req.body.expiredTime // Expiration time in seconds (e.g., 1 hour)
         };
         const imageURL = s3.getSignedUrl('getObject', getURLParams);
